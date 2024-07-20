@@ -372,7 +372,8 @@ int main(int argc, char** argv)
 {
 	cout << "usage: ./a.out < input.txt\n\n";
 	
-	parser p("sin(sin(sin(sin(sin(sin(5*5))))))");
+	parser p("5.0+a");
+	//parser p("sin(sin(sin(sin(sin(sin(5*5))))))");
 	//p.parse();
 	p.PrintBFS( p.parse() );
 	//p.PrintTokens();

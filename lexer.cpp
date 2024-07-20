@@ -149,7 +149,7 @@ Token LexicalAnalyzer::ScanNumber()
 		else
 		{
 			tmp.lexeme="";
-			while(!input.EndOfInput() && isdigit(c))
+			while(!input.EndOfInput() && (isdigit(c) || c == '.'))
 			{
 				tmp.lexeme+=c;
 				input.GetChar(c);
