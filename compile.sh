@@ -1,1 +1,1 @@
-g++ -g -Wall -std=c++11 *.cpp
+g++ -g -Wall -std=c++17 *.cpp

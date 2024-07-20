@@ -223,7 +223,7 @@ tree_node* parser::parse_decl()
 
 tree_node* parser::parse_varList()
 {
-	function_name.push_back( expect(ID) );
+	function_name.push_back( expect(ID).lexeme );
 	if(lex.peek(1).token_type==COMMA)
 		parse_varList();
 	return nullptr;
@@ -374,7 +374,8 @@ type_check::type_check(tree_node* node)
 	: root(node)
 	{}
 
-type_check::std::pair<bool, string> isFunction()
+std::pair<bool, string> type_check::isFunction()
 {
-	if(root->type == BINARY_OP && root->)
+	//if(root->type == BINARY_OP && root->)
+	return std::make_pair(false, "");
 }
