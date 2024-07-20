@@ -11,6 +11,7 @@ public:
 	char UngetChar(char);
 	std::string UngetString(std::string);
 	bool EndOfInput();
+	void PassInput(std::string);
 private:
 	std::vector<char> input_buffer;
 };
@@ -39,8 +40,9 @@ class LexicalAnalyzer
 public:
 	Token GetToken();
 	Token peek(int);
-	LexicalAnalyzer();
+	LexicalAnalyzer(std::string input = "");
 private:
+	bool PassInput(std::string); // returns true upon success
 	std::vector<Token> tokenList;
 	Token GetTokenMain();
 	int line_no;

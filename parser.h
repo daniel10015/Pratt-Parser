@@ -102,7 +102,9 @@ typedef struct tag_tree_node
 class parser
 {
 public:
-	parser();
+	parser() = delete;
+	~parser();
+	parser(std::string);
 	tree_node* parse();
 	int GetLineNo();
 	tree_node* GetRoot();
@@ -114,7 +116,7 @@ public:
 private:
 	std::unordered_map<TokenType, int8_t> infix_precedence; // consider making these two variables static
 	std::unordered_map<TokenType, int8_t> prefix_precedence;
-	LexicalAnalyzer lex;
+	LexicalAnalyzer* lex;
 	tree_node* root_node = nullptr;
 	int line_no = 1;
 	std::vector<string> function_name;

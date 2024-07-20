@@ -1,8 +1,11 @@
 #include <iostream>
 #include <vector>
+#include <algorithm>
 #include <string>
 #include <cstdio>
 #include "lexer.h"
+
+#define DEBUG_LEXER
 
 using std::string; 
 using std::vector;
@@ -13,9 +16,10 @@ using std::endl;
 // gets passed into vector as an std::stack (instead of a vector)
 bool InputBuffer::EndOfInput()
 {
-	if(!input_buffer.empty())
-		return false;
-	return std::cin.eof();
+	#ifdef DEBUG_LEXER
+		cout << "end of file: " << input_buffer.empty() << endl;
+	#endif
+	return input_buffer.empty();
 }
 
 char InputBuffer::UngetChar(char c)
@@ -30,10 +34,17 @@ void InputBuffer::GetChar(char& c)
 {
 	if(input_buffer.empty())
 	{
-		std::cin.get(c);
+		//std::cin.get(&c, 0);
 		#ifdef DEBUG_LEXER
-			cout << "char inbuf (from stream): " << c << endl;
+			//cout << "char inbuf (from stream): " << c << endl;
+			//cout << "num:" << int(c) << endl;
 		#endif
+		c=EOF;
+		
+		#ifdef DEBUG_LEXER
+			cout << "custom 'c': " << int(c) << endl;
+		#endif
+		
 		return;
 	}
 	c = input_buffer.back();
@@ -53,6 +64,17 @@ string InputBuffer::UngetString(string s)
 	return s;
 }
 
+
+void InputBuffer::PassInput(std::string input)
+{
+
+	for(auto c : input)
+	{
+		input_buffer.push_back(c);
+	}
+	std::reverse(input_buffer.begin(), input_buffer.end());
+}
+
 void Token::Print()
 {
 	 cout << "{" << this->lexeme << " , "
@@ -60,8 +82,10 @@ void Token::Print()
          << this->line_no << "}\n";
 }
 
-LexicalAnalyzer::LexicalAnalyzer()
+LexicalAnalyzer::LexicalAnalyzer(std::string input)
 {
+	if(input != "")
+		this->PassInput(input);
 	this->line_no = 1;
 	tmp.lexeme = "";
 	tmp.line_no = 1;
@@ -79,7 +103,18 @@ LexicalAnalyzer::LexicalAnalyzer()
 		{
 			cout << tok.lexeme << endl;
 		}
+	cout << "WE MADE ITTTTTT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
 	#endif
+}
+
+bool LexicalAnalyzer::PassInput(std::string inputString)
+{
+	if(inputString == "")
+		return false;
+	
+	input.PassInput(inputString);
+	
+	return true;
 }
 
 bool LexicalAnalyzer::SkipSpace()
@@ -92,7 +127,7 @@ bool LexicalAnalyzer::SkipSpace()
 		space_encountered = true;
 		input.GetChar(c);
 	}
-	if(!input.EndOfInput())
+	if(!input.EndOfInput() || c != EOF)
 	{
 		#ifdef DEBUG_LEXER
 			cout << "skipspace: unget\n";
@@ -160,12 +195,15 @@ Token LexicalAnalyzer::GetToken()
 // scan ID or keyword (this was rewritten to handle keywords ie. trig/exp functions)
 Token LexicalAnalyzer::ScanId()
 {
+	#ifdef DEBUG_LEXER
+		cout << "ScanID()" << endl;
+	#endif
 	char c;
 	input.GetChar(c);
 	if(isalpha(c))
 	{
 		tmp.lexeme="";
-		while(!input.EndOfInput() && isalnum(c))
+		while((c != EOF) && isalnum(c))
 		{
 			tmp.lexeme+=c;
 			input.GetChar(c);
@@ -186,11 +224,17 @@ Token LexicalAnalyzer::ScanId()
 		tmp.lexeme="";
 		tmp.token_type=ERROR;
 	}
+	#ifdef DEBUG_LEXER
+		cout << "ScanID() tok.lexeme: " << tmp.lexeme << endl;
+	#endif
 	return tmp;
 }
 
 int LexicalAnalyzer::FindKeywordIndex(string s)
 {
+	#ifdef DEBUG_LEXER
+		cout << "keyword string: " << s << endl;
+	#endif
     string keyword[] = { "exp", "sin", "cos", "tan", "arcsin", "arccos", "arctan" };
     for (int i = 0; i < KEYWORDS_COUNT; i++) {
         if (s == keyword[i]) {
@@ -286,6 +330,9 @@ Token LexicalAnalyzer::GetTokenMain()
 			}	
 			else if(isalpha(c))
 			{
+				#ifdef DEBUG_LEXER
+					cout << "UngetChar(): " << c << endl;
+				#endif
 				input.UngetChar(c);
 				return ScanId();
 			}
@@ -293,6 +340,9 @@ Token LexicalAnalyzer::GetTokenMain()
 				tmp.token_type = END_OF_FILE;
 			else
 				tmp.token_type = ERROR;
+			#ifdef DEBUG_LEXER
+				cout << "Not a character, EOF" << endl;
+			#endif
 			return tmp;
 	}
 }

@@ -13,7 +13,7 @@ void parser::syntaxError()
 
 Token parser::expect(TokenType tt)
 {
-	Token t1 = lex.GetToken();
+	Token t1 = lex->GetToken();
 	if(t1.token_type != tt)
 	{
 		#ifdef DEBUG_PARSER
@@ -29,8 +29,16 @@ int parser::GetLineNo() { return this->line_no; }
 
 tree_node* parser::GetRoot() { return this->root_node; }
 
-parser::parser()
+parser::~parser()
 {
+	if(lex)
+		delete lex;
+}
+
+parser::parser(std::string input)
+{
+	lex = new LexicalAnalyzer(input);
+
 	infix_precedence[END_OF_FILE] = -1;
 	infix_precedence[VAR] = 0;
 	infix_precedence[NUM] = 0;
@@ -77,11 +85,11 @@ parser::parser()
 void parser::PrintTokens()
 {
 	Token t;
-	t=lex.GetToken();
+	t=lex->GetToken();
 	while(t.token_type != END_OF_FILE)
 	{
 		t.Print();
-		t=lex.GetToken();
+		t=lex->GetToken();
 	}
 }
 
@@ -195,11 +203,11 @@ tree_node* parser::parse()
 
 tree_node* parser::parse_block()
 {
-	TokenType t1 = lex.peek(1).token_type; // ID
-	TokenType t2 = lex.peek(2).token_type; // LPAREN
-	TokenType t3 = lex.peek(3).token_type; // VAR
-	TokenType t4 = lex.peek(4).token_type; // COMMA (or) EQUAL 
-	TokenType t5 = lex.peek(5).token_type;
+	TokenType t1 = lex->peek(1).token_type; // ID
+	TokenType t2 = lex->peek(2).token_type; // LPAREN
+	TokenType t3 = lex->peek(3).token_type; // VAR
+	TokenType t4 = lex->peek(4).token_type; // COMMA (or) EQUAL 
+	TokenType t5 = lex->peek(5).token_type;
 	if(t1==ID && t2==LPAREN && t3==ID)
 	{
 		if(t4==COMMA || (t4==RPAREN&&t5==EQUAL))
@@ -224,7 +232,7 @@ tree_node* parser::parse_decl()
 tree_node* parser::parse_varList()
 {
 	function_name.push_back( expect(ID).lexeme );
-	if(lex.peek(1).token_type==COMMA)
+	if(lex->peek(1).token_type==COMMA)
 		parse_varList();
 	return nullptr;
 }
@@ -237,14 +245,14 @@ tree_node* parser::parse_expr(int8_t precedence)
 	tree_node* temp;
 	Token op;
 	#ifdef DEBUG_PARSER
-	cout << "parse expr: " << lex.peek(1).lexeme << endl; 
+	cout << "parse expr: " << lex->peek(1).lexeme << endl; 
 	#endif
-	while( getInfixPrecedence( lex.peek(1).token_type ) > precedence ) 
+	while( getInfixPrecedence( lex->peek(1).token_type ) > precedence ) 
 	{
 			#ifdef DEBUG_PARSER
 		cout << "higher precedence, recursively call expr" << endl; 
 		#endif
-		op = lex.GetToken();
+		op = lex->GetToken();
 		temp = left;
 		left = new tree_node{}; //{ BINARY_OP, left, parse_expr( getInfixPrecedence(op.token_type) ), GetBinOp(op.token_type) }; // lhs, rhs, op
 		left->type = BINARY_OP;
@@ -257,7 +265,7 @@ tree_node* parser::parse_expr(int8_t precedence)
 
 tree_node* parser::parse_prefix()
 {
-	Token t1 = lex.GetToken();
+	Token t1 = lex->GetToken();
 	#ifdef DEBUG_PARSER
 	cout << "parse prefix: " << t1.lexeme << " " << t1.token_type << endl;
 	#endif
@@ -273,7 +281,7 @@ tree_node* parser::parse_prefix()
 		node->prefix_op.op = GetPrefixOp( t1.token_type );
 		node->prefix_op.next = nullptr;
 		#ifdef DEBUG_PARSER
-		cout << "next token type: " << lex.peek(1).token_type << "\n";
+		cout << "next token type: " << lex->peek(1).token_type << "\n";
 		#endif
 		return node; 
 	}
@@ -358,11 +366,11 @@ const std::vector<string>& parser::GetFunctionName()
 }
 
 // for testing purposes
-int main(void)
+int main(int argc, char** argv)
 {
 	cout << "usage: ./a.out < input.txt\n\n";
 	
-	parser p;
+	parser p("sin(sin(sin(sin(sin(sin(5*5))))))");
 	//p.parse();
 	p.PrintBFS( p.parse() );
 	//p.PrintTokens();
