@@ -365,6 +365,8 @@ const std::vector<string>& parser::GetFunctionName()
 	return function_name;
 }
 
+#ifdef MAIN_H
+
 // for testing purposes
 int main(int argc, char** argv)
 {
@@ -376,6 +378,8 @@ int main(int argc, char** argv)
 	//p.PrintTokens();
 	return 0;
 }
+
+#endif /* MAIN_H */
 
 // type checking class
 type_check::type_check(tree_node* node)
